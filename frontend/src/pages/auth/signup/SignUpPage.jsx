@@ -7,8 +7,8 @@ import { MdOutlineMail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { MdPassword } from "react-icons/md";
 import { MdDriveFileRenameOutline } from "react-icons/md";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +17,8 @@ const SignUpPage = () => {
     fullName: "",
     password: "",
   });
+
+  const queryClient = useQueryClient();
 
   const { mutate, isError, isPending, error } = useMutation({
     mutationFn: async ({ email, username, fullName, password }) => {
@@ -28,25 +30,28 @@ const SignUpPage = () => {
           },
           body: JSON.stringify({ email, username, fullName, password }),
         });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to create account");
-        }
 
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to create account");
         console.log(data);
         return data;
       } catch (error) {
-        console.error("Error in signup mutation", error);
+        console.error(error);
         throw error;
       }
     },
     onSuccess: () => {
-      toast.success("Sign up successful! You can now log in.");
+      toast.success("Account created successfully");
+
+      {
+        /* Added this line below, after recording the video. I forgot to add this while recording, sorry, thx. */
+      }
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
   });
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // page won't reload
     mutate(formData);
   };
 
@@ -57,7 +62,7 @@ const SignUpPage = () => {
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen px-10">
       <div className="flex-1 hidden lg:flex items-center  justify-center">
-        <XSvg className=" lg:w-2/3 fill-white" />
+        <XSvg className="lg:w-2/3 fill-white" />
       </div>
       <div className="flex-1 flex flex-col justify-center items-center">
         <form

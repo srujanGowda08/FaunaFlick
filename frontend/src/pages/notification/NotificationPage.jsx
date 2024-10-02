@@ -5,8 +5,8 @@ import { toast } from "react-hot-toast";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaUser } from "react-icons/fa"; // Correct import for user icon
-import { FaHeart } from "react-icons/fa"; // Correct import for heart icon
+import { FaUser } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa6";
 
 const NotificationPage = () => {
   const queryClient = useQueryClient();

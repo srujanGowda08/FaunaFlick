@@ -11,26 +11,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    password: {
+      type: String,
+      required: true,
+      minLength: 6,
+    },
     email: {
       type: String,
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-    },
     followers: [
       {
-        type: mongoose.Schema.Types.ObjectId, //16 characters
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: [],
       },
     ],
     following: [
       {
-        type: mongoose.Schema.Types.ObjectId, //16 characters
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: [],
       },
@@ -47,13 +47,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
     link: {
       type: String,
       default: "",
     },
     likedPosts: [
       {
-        type: mongoose.Schema.Types.ObjectId, //16 characters
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Post",
         default: [],
       },

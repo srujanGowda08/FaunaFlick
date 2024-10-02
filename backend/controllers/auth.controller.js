@@ -1,44 +1,47 @@
-import bcrypt from "bcryptjs";
-import User from "../models/user.model.js";
 import { generateTokenAndSetCookie } from "../lib/util/generateToken.js";
+import User from "../models/user.model.js";
+import bcrypt from "bcryptjs";
 
 export const signup = async (req, res) => {
   try {
-    const { username, fullName, email, password } = req.body;
+    const { fullName, username, email, password } = req.body;
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email address" });
+      return res.status(400).json({ error: "Invalid email format" });
     }
-    // Check if user already exists
-    const existingUser = await User.findOne({ username: username });
+
+    const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ error: "Username is already taken" });
     }
-    // check if email already exists
-    const existingEmail = await User.findOne({ email: email });
+
+    const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      return res.status(400).json({ error: "Email address is already taken" });
+      return res.status(400).json({ error: "Email is already taken" });
     }
-    // Check password strength
+
     if (password.length < 6) {
       return res
         .status(400)
-        .json({ error: "Password must be at least 7 characters long" });
+        .json({ error: "Password must be at least 6 characters long" });
     }
-    // Hash Password
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    // Create new user
+
     const newUser = new User({
-      username,
       fullName,
+      username,
       email,
       password: hashedPassword,
     });
+
     if (newUser) {
       generateTokenAndSetCookie(newUser._id, res);
       await newUser.save();
-      res.status(200).json({
+
+      res.status(201).json({
         _id: newUser._id,
         fullName: newUser.fullName,
         username: newUser.username,
@@ -49,11 +52,11 @@ export const signup = async (req, res) => {
         coverImg: newUser.coverImg,
       });
     } else {
-      res.status(400).json({ error: "Failed to create user" });
+      res.status(400).json({ error: "Invalid user data" });
     }
   } catch (error) {
-    console.error("Error in signup controller: ", error.message);
-    res.status(500).json({ error: "Server error" });
+    console.log("Error in signup controller", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -65,10 +68,13 @@ export const login = async (req, res) => {
       password,
       user?.password || ""
     );
+
     if (!user || !isPasswordCorrect) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(400).json({ error: "Invalid username or password" });
     }
+
     generateTokenAndSetCookie(user._id, res);
+
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
@@ -80,27 +86,27 @@ export const login = async (req, res) => {
       coverImg: user.coverImg,
     });
   } catch (error) {
-    console.error("Error in login controller: ", error.message);
-    res.status(500).json({ error: "Server error" });
+    console.log("Error in login controller", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 export const logout = async (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
-    res.json({ message: "Logout successful!" });
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("Error in logout controller: ", error.message);
-    res.status(500).json({ error: "Server error" });
+    console.log("Error in logout controller", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const getme = async (req, res) => {
+export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
-    res.status(200).json({ user });
+    res.status(200).json(user);
   } catch (error) {
-    console.error("Error in getme controller: ", error.message);
-    res.status(500).json({ error: "Server error" });
+    console.log("Error in getMe controller", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
