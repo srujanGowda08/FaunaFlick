@@ -21,6 +21,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const __dirname = path.resolve();
 const app = express();
 app.use(express.json({ limit: "5mb" })); //Middleware to parse req.body
 app.use(express.urlencoded({ extended: true })); //Middleware to parse from data(urlencodded)
