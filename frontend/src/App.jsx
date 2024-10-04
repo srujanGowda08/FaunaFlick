@@ -1,4 +1,7 @@
+import { useState, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
 import HomePage from "./pages/home/HomePage";
 import LoginPage from "./pages/auth/login/LoginPage";
@@ -8,43 +11,39 @@ import ProfilePage from "./pages/profile/ProfilePage";
 
 import Sidebar from "./components/common/Sidebar";
 import RightPanel from "./components/common/RightPanel";
-
-import { Toaster } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
-import LoadingSpinner from "./components/common/LoadingSpinner";
+import LoaderPage from "./components/common/LoaderPage"; // Loader page import
 
 function App() {
-  const { data: authUser, isLoading } = useQuery({
-    // we use queryKey to give a unique name to our query and refer to it later
+  const { data: authUser } = useQuery({
     queryKey: ["authUser"],
     queryFn: async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        const data = await res.json();
-        if (data.error) return null;
-        if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
-        }
-        console.log("authUser is here:", data);
-        return data;
-      } catch (error) {
-        throw new Error(error);
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.error) return null;
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
       }
+      return data;
     },
     retry: false,
   });
 
-  if (isLoading) {
-    return (
-      <div className="h-screen flex justify-center items-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+  const [showLoader, setShowLoader] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoader(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showLoader) {
+    return <LoaderPage />;
   }
 
   return (
     <div className="flex max-w-6xl mx-auto">
-      {/* Common component, bc it's not wrapped with Routes */}
       {authUser && <Sidebar />}
       <Routes>
         <Route
